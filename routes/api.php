@@ -35,5 +35,7 @@ Route::middleware('auth:sanctum')->group(function() {
 
 	Route::get("maintenance/get/{vehicle_id}",[\App\Http\Controllers\MaintenanceController::class,"get_data"]);
 	Route::get("maintenance/reminder/{vehicle_id}",[\App\Http\Controllers\MaintenanceController::class,"get_reminder"]);
-	Route::get("maintenance/insert/{vehicle_id}",[\App\Http\Controllers\MaintenanceController::class,"insert"]);
+	Route::post("maintenance/insert/{vehicle_id}",[\App\Http\Controllers\MaintenanceController::class,"insert"]);
+	Route::post("maintenance/update/{maintenance_id}",[\App\Http\Controllers\MaintenanceController::class,"update"]);
+	Route::post("maintenance/delete/{maintenance_id}",[\App\Http\Controllers\MaintenanceController::class,"delete"]);
 });

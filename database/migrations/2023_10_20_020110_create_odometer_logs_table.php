@@ -15,7 +15,7 @@ return new class extends Migration
             $table->increments("id");
             $table->integer("vehicle_id")->unsigned();
             $table->integer("odometer");
-            $table->integer("data_from");
+            $table->string("data_from",100);
             $table->integer("data_from_id");
             $table->foreign('vehicle_id')->references('id')->on('vehicles')->onDelete("cascade");
             $table->timestamp('created_at')->useCurrent();

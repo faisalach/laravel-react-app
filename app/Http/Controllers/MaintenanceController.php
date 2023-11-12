@@ -110,8 +110,8 @@ class MaintenanceController extends Controller
 		$request->validate([
 			'odometer'  => 'required|numeric',
 			'maintenance_date' => 'required',
-			'title.*' => 'required',
-			'price.*' => 'required',
+			'detail_maintenance.*.title' => 'required',
+			'detail_maintenance.*.price' => 'required',
 		]);
 
 		$data->vehicle_id           = $vehicle_id;
@@ -120,20 +120,20 @@ class MaintenanceController extends Controller
 
 		if($data->save()){
 			
-			foreach($request->input("title") as $key => $title){
+			foreach($request->input("detail_maintenance") as $key => $row){
 				$detail_data                        = new Detail_maintenance;
 				$detail_data->maintenance_id        = $data->id;
-				$detail_data->title					= $request->input("title")[$key];
-				$detail_data->price					= $request->input("price")[$key];
-				$detail_data->reminder_on_kilometer = $request->input("reminder_on_kilometer")[$key];
-				$detail_data->reminder_on_date      = $request->input("reminder_on_date")[$key];
+				$detail_data->title					= $row["title"];
+				$detail_data->price					= $row["price"];
+				$detail_data->reminder_on_kilometer	= !empty($row["reminder_on_kilometer"]) ? $row["reminder_on_kilometer"] : "";
+				$detail_data->reminder_on_date		= !empty($row["reminder_on_date"]) ? $row["reminder_on_date"] : "";
 				$detail_data->save();
 			}
 			
 			$odometer_logs                  = new Odometer_logs;
-			$odometer_logs->vehicle_id      = $vehicle_id;
+			$odometer_logs->vehicle_id      = $data->vehicle_id;
 			$odometer_logs->odometer        = $data->odometer;
-			$odometer_logs->data_from	    = "fuel";
+			$odometer_logs->data_from	    = "maintenance";
 			$odometer_logs->data_from_id	= $data->id;
 			$odometer_logs->save();
 
@@ -144,6 +144,107 @@ class MaintenanceController extends Controller
 			return response([
 				"message" => "Failed, please try again"
 			]);
+		}
+	}
+
+	public function update(Request $request,$id){
+		$data   = Maintenances::find($id);
+		$user   = Auth::user();
+
+		if(empty($data)){
+			return response([
+				"message" => "Data not Found"
+			],422);
+		}
+
+		$vehicle    = Vehicles::find($data->vehicle_id);
+		if($vehicle->user_id !== $user->id){
+			return response([
+				"message" => "Data not Found"
+			],422);
+		}
+
+		$request->validate([
+			'odometer'  => 'required|numeric',
+			'maintenance_date' => 'required',
+			'detail_maintenance.*.title' => 'required',
+			'detail_maintenance.*.name' => 'required',
+		]);
+
+		$data->odometer             = $request->input("odometer");
+		$data->maintenance_date     = $request->input("maintenance_date");
+
+		if($data->save()){
+			
+			foreach($request->input("detail_maintenance") as $key => $row){
+				$id 				= !empty($row["id"]) ? $row["id"] : "";
+
+				$detail_data		= Detail_maintenance::find($id);
+				if(!empty($detail_data)){
+					$detail_data	= new Detail_maintenance;
+				}
+
+				$detail_data->maintenance_id        = $data->id;
+				$detail_data->title					= $row["title"];
+				$detail_data->price					= $row["price"];
+				$detail_data->reminder_on_kilometer = !empty($row["reminder_on_kilometer"]) ? $row["reminder_on_kilometer"] : "";
+				$detail_data->reminder_on_date      = !empty($row["reminder_on_date"]) ? $row["reminder_on_date"] : "";
+				$detail_data->save();
+			}
+			
+			$odometer_logs			= Odometer_logs::where("vehicle_id",$data->vehicle_id)
+			->where("data_from","maintenance")
+			->where("data_from_id",$data->id)
+			->first();
+			
+			if(!empty($odometer_logs)){
+				$odometer_logs->odometer    = $data->odometer;
+				$odometer_logs->save();
+			}
+
+			return response([
+				"message" => "Successfuly update data"
+			]);
+		}else{
+			return response([
+				"message" => "Failed, please try again"
+			]);
+		}
+	}
+
+	public function delete(Request $request,$id){
+		$data	= Maintenances::find($id);
+		$user   = Auth::user();
+
+		if(empty($data)){
+			return response([
+				"message" => "Data not Found"
+			],422);
+		}
+
+		$vehicle    = Vehicles::find($data->vehicle_id);
+		if($vehicle->user_id !== $user->id){
+			return response([
+				"message" => "Data not Found"
+			],422);
+		}
+
+		$old_id					= $data->id;
+		if($data->delete()){
+			
+			$odometer_logs		= Odometer_logs::where("vehicle_id",$data->vehicle_id)
+			->where("data_from","maintenance")
+			->where("data_from_id",$old_id)
+			->first();
+			$odometer_logs->delete();
+
+			return response([
+				"message" => "Successfuly delete data"
+			]);
+		}else{
+			return response([
+				"message" => "Failed, Please try again"
+			],422);
 		}
 	}
 }

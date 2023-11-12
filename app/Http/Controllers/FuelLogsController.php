@@ -117,7 +117,6 @@ class FuelLogsController extends Controller
 			'odometer' => 'required',
 			'filling_date' => 'required|date',
 		]);
-		$old_odometer			= $data->odometer;
 				
 		$data->fuel_name		= $request->input("fuel_name");
 		$data->price_per_liter	= $request->input("price_per_liter");
@@ -129,7 +128,6 @@ class FuelLogsController extends Controller
 		if($data->save()){
 
 			$odometer_logs			= Odometer_logs::where("vehicle_id",$data->vehicle_id)
-			->where("odometer",$old_odometer)
 			->where("data_from","fuel")
 			->where("data_from_id",$data->id)
 			->first();
@@ -166,12 +164,10 @@ class FuelLogsController extends Controller
 			],422);
 		}
 
-		$old_odometer			= $data->odometer;
 		$old_id					= $data->id;
 		if($data->delete()){
 			
 			$odometer_logs		= Odometer_logs::where("vehicle_id",$data->vehicle_id)
-			->where("odometer",$old_odometer)
 			->where("data_from","fuel")
 			->where("data_from_id",$old_id)
 			->first();
