@@ -12,87 +12,87 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
 {
-    protected $duration_jwt     = 60 * 24 * 7;
+	protected $duration_jwt     = 60 * 24 * 7;
 
-    public function register(Request $request) {
-        $request->validate([
-            'username' => 'required|unique:users,username',
-            'password' => 'required|min:8',
-        ]);
+	public function register(Request $request) {
+		$request->validate([
+			'username' => 'required|unique:users,username',
+			'password' => 'required|min:8',
+		]);
 
-        $user    = User::create([
-            "username"  => $request->input("username"),
-            "password"  => Hash::make($request->input("password")),
-        ]);
+		$user    = User::create([
+			"username"  => $request->input("username"),
+			"password"  => Hash::make($request->input("password")),
+		]);
 
-        if($user){
+		if($user){
 
-            $vehicle    = Vehicles::create([
-                'user_id' => $user->id,
-                'vehicle_brand' => "Default",
-                'vehicle_model' => "Vehicle 1",
-                'number_plate' => "X XXXX XXX",
-            ]);
+			$vehicle    = Vehicles::create([
+				'user_id' => $user->id,
+				'vehicle_brand' => "Default",
+				'vehicle_model' => "Vehicle 1",
+				'number_plate' => "X XXXX XXX",
+			]);
 
-            $auth       = Auth::attempt(['username' => $request->input("username"), 'password' => $request->input("password")]);        
-            if(!$auth){
-                return response([
-                    "message" => "Incorrect username and password"
-                ],Response::HTTP_UNAUTHORIZED);
-            }
-    
-            $user   = Auth::user();
-    
-            $token  = $user->createToken("token")->plainTextToken;
-    
-            $cookie     = cookie("jwt",$token,$this->duration_jwt);
-    
-            return response([
-                "message" => "Successfuly register",
-                "user"  => $user
-            ])->withCookie($cookie);
+			$auth       = Auth::attempt(['username' => $request->input("username"), 'password' => $request->input("password")]);        
+			if(!$auth){
+				return response([
+					"message" => "Incorrect username and password"
+				],Response::HTTP_UNAUTHORIZED);
+			}
+	
+			$user   = Auth::user();
+	
+			$token  = $user->createToken("token")->plainTextToken;
+	
+			$cookie     = cookie("jwt",$token,$this->duration_jwt);
+	
+			return response([
+				"message" => "Successfuly register",
+				"user"  => $user
+			])->withCookie($cookie);
 
-        }else{
-            return response([
-                "message" => "error",
-            ],422);
-        }
-    }
-    public function login(Request $request) {
-        $request->validate([
-            'username' => 'required',
-            'password' => 'required',
-        ]);
-        
-        $username   = $request->input("username");
-        $password   = $request->input("password");
-        $auth       = Auth::attempt(['username' => $username, 'password' => $password]);        
-        if(!$auth){
-            return response([
-                "message" => "Incorrect username and password"
-            ],Response::HTTP_UNAUTHORIZED);
-        }
+		}else{
+			return response([
+				"message" => "error",
+			],422);
+		}
+	}
+	public function login(Request $request) {
+		$request->validate([
+			'username' => 'required',
+			'password' => 'required',
+		]);
+		
+		$username   = $request->input("username");
+		$password   = $request->input("password");
+		$auth       = Auth::attempt(['username' => $username, 'password' => $password]);        
+		if(!$auth){
+			return response([
+				"message" => "Incorrect username and password"
+			],Response::HTTP_UNAUTHORIZED);
+		}
 
-        $user   = Auth::user();
+		$user   = Auth::user();
 
-        $token  = $user->createToken("token")->plainTextToken;
+		$token  = $user->createToken("token")->plainTextToken;
 
-        $cookie     = cookie("jwt",$token,$this->duration_jwt);
+		$cookie     = cookie("jwt",$token,$this->duration_jwt);
 
-        return response([
-            "message" => "Successfuly login",
-            "user"  => $user
-        ])->withCookie($cookie);
-    }
-    public function user() {
-        return Auth::user();
-    }
+		return response([
+			"message" => "Successfuly login",
+			"user"  => $user
+		])->withCookie($cookie);
+	}
+	public function user() {
+		return Auth::user();
+	}
 
-    public function logout(){
-        $cookie     = Cookie::forget("jwt");
+	public function logout(){
+		$cookie     = Cookie::forget("jwt");
 
-        return response([
-            "message" => "Successfuly logout",
-        ])->withCookie($cookie);
-    }
+		return response([
+			"message" => "Successfuly logout",
+		])->withCookie($cookie);
+	}
 }
