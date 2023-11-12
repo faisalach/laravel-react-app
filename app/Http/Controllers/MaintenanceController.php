@@ -33,7 +33,20 @@ class MaintenanceController extends Controller
 			$data->where($where);
 		}
 
-		return $data->get();
+		$result 	= $data->get();
+
+		foreach($result as $key => $row){
+			$row->total_price = 0;
+
+			if(!empty($row->detail_maintenance)){
+				foreach($row->detail_maintenance as $dm){
+					$row->total_price += $dm->price;
+				}
+			}
+
+		}
+
+		return $result;
 
 	}
 
