@@ -8,6 +8,7 @@ use App\Models\Odometer_logs;
 use App\Models\Vehicles;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class MaintenanceController extends Controller
 {
@@ -43,15 +44,30 @@ class MaintenanceController extends Controller
         if($vehicle->user_id !== $user->id){
             return null;
         }
-        
-        $detail_maintenance       = Detail_maintenance::select("detail_maintenance.*");
 
+		$odometer_log	= Odometer_logs::where("vehicle_id",$vehicle->id)
+		->orderBy("odometer","DESC")
+		->limit(1)
+		->first();
+        
+        $detail_maintenance		= Detail_maintenance::select("detail_maintenance.*");
         $detail_maintenance->join("maintenances","maintenance_id","=","maintenances.id");
         $detail_maintenance->where("vehicle_id",$vehicle_id);
         $detail_maintenance->where(function($query){
-            $query->where("reminder_on_date","!=",null);
-            $query->orWhere("reminder_on_kilometer","!=",null);
+        	$query->where(function($query2){
+				$query2->where("reminder_on_date","!=",null);
+				$query2->where("reminder_on_date",">=",DB::raw("DATE(NOW())"));
+			});
+        	$query->orWhere(function($query2){
+				$query2->where("reminder_on_kilometer","!=",null);
+				if(!empty($odometer_log)){
+					$query2->where("reminder_on_kilometer",">=",$odometer_log->odometer);
+				}
+			});
         });
+
+		$detail_maintenance->orderBy("reminder_on_kilometer","ASC");
+		$detail_maintenance->orderBy("reminder_on_date","ASC");
 
         $limit      = $request->input("limit");
         $offset     = $request->input("offset");
@@ -94,16 +110,18 @@ class MaintenanceController extends Controller
             foreach($request->input("title") as $key => $title){
                 $detail_data                        = new Detail_maintenance;
                 $detail_data->maintenance_id        = $data->id;
-                $detail_data->title                 = $request->input("title")[$key];
-                $detail_data->price                 = $request->input("price")[$key];
+                $detail_data->title					= $request->input("title")[$key];
+                $detail_data->price					= $request->input("price")[$key];
                 $detail_data->reminder_on_kilometer = $request->input("reminder_on_kilometer")[$key];
                 $detail_data->reminder_on_date      = $request->input("reminder_on_date")[$key];
                 $detail_data->save();
             }
             
-            $odometer_logs              = new Odometer_logs;
-            $odometer_logs->vehicle_id  = $vehicle_id;
-            $odometer_logs->odometer    = $data->odometer;
+            $odometer_logs                  = new Odometer_logs;
+            $odometer_logs->vehicle_id      = $vehicle_id;
+            $odometer_logs->odometer        = $data->odometer;
+            $odometer_logs->data_from	    = "fuel";
+            $odometer_logs->data_from_id	= $data->id;
             $odometer_logs->save();
 
             return response([

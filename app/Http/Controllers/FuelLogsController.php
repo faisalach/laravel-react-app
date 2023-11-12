@@ -76,9 +76,11 @@ class FuelLogsController extends Controller
 
 
         if($data->save()){
-            $odometer_logs              = new Odometer_logs;
-            $odometer_logs->vehicle_id  = $vehicle_id;
-            $odometer_logs->odometer    = $data->odometer;
+            $odometer_logs					= new Odometer_logs;
+            $odometer_logs->vehicle_id		= $vehicle_id;
+            $odometer_logs->odometer		= $data->odometer;
+            $odometer_logs->data_from		= "fuel";
+            $odometer_logs->data_from_id	= $data->id;
             $odometer_logs->save();
 
             return response([
@@ -115,20 +117,27 @@ class FuelLogsController extends Controller
             'odometer' => 'required',
             'filling_date' => 'required|date',
         ]);
-        $old_odometer               = $data->odometer;
-
-        $data->fuel_name          = $request->input("fuel_name");
-        $data->price_per_liter    = $request->input("price_per_liter");
-        $data->total_price        = $request->input("total_price");
-        $data->number_of_liter    = $data->total_price / $data->price_per_liter;
-        $data->odometer           = $request->input("odometer");
-        $data->filling_date       = $request->input("filling_date");
+		$old_odometer			= $data->odometer;
+				
+        $data->fuel_name		= $request->input("fuel_name");
+        $data->price_per_liter	= $request->input("price_per_liter");
+        $data->total_price		= $request->input("total_price");
+        $data->number_of_liter	= $data->total_price / $data->price_per_liter;
+        $data->odometer			= $request->input("odometer");
+        $data->filling_date		= $request->input("filling_date");
 
         if($data->save()){
-            $odometer_logs              = Odometer_logs::where("vehicle_id",$data->vehicle_id)
-            ->where("odometer",$old_odometer)->first();
-            $odometer_logs->odometer    = $data->odometer;
-            $odometer_logs->save();
+
+            $odometer_logs			= Odometer_logs::where("vehicle_id",$data->vehicle_id)
+            ->where("odometer",$old_odometer)
+			->where("data_from","fuel")
+			->where("data_from_id",$data->id)
+			->first();
+			
+			if(!empty($odometer_logs)){
+				$odometer_logs->odometer    = $data->odometer;
+				$odometer_logs->save();
+			}
 
             return response([
                 "message" => "Successfuly update data"
@@ -157,10 +166,15 @@ class FuelLogsController extends Controller
             ],422);
         }
 
-        $old_odometer               = $data->odometer;
+        $old_odometer			= $data->odometer;
+        $old_id					= $data->id;
         if($data->delete()){
-            $odometer_logs              = Odometer_logs::where("vehicle_id",$data->vehicle_id)
-            ->where("odometer",$old_odometer)->first();
+			
+            $odometer_logs		= Odometer_logs::where("vehicle_id",$data->vehicle_id)
+            ->where("odometer",$old_odometer)
+			->where("data_from","fuel")
+			->where("data_from_id",$old_id)
+			->first();
             $odometer_logs->delete();
 
             return response([
