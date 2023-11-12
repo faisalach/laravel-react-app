@@ -68,8 +68,6 @@ class VehicleController extends Controller
 		if($data->save()){
 			$odometer_logs              	= new Odometer_logs;
 			$odometer_logs->vehicle_id  	= $data->id;
-			$odometer_logs->data_from		= "";
-			$odometer_logs->data_from_id	= "";
 			$odometer_logs->odometer    	= $request->input("odometer");
 			$odometer_logs->save();
 
@@ -122,8 +120,6 @@ class VehicleController extends Controller
 
 			if(empty($data->last_odometer)){
 				$odometer_logs              	= new Odometer_logs;
-				$odometer_logs->data_from		= "";
-				$odometer_logs->data_from_id	= "";
 				$odometer_logs->vehicle_id  	= $data->id;
 				$odometer_logs->odometer    	= $request->input("odometer");
 				$odometer_logs->save();
