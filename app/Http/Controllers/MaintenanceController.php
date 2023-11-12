@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 class MaintenanceController extends Controller
 {
     public function get_data(Request $request,$vehicle_id){
-        $data       = Maintenances::select();
+        $data       = Maintenances::select()->with(["detail_maintenance"]);
         $user       = Auth::user();
 
         $limit      = $request->input("limit");

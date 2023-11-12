@@ -19,7 +19,8 @@ return new class extends Migration
             $table->integer("reminder_on_kilometer")->nullable();
             $table->date("reminder_on_date")->nullable();
             $table->foreign('maintenance_id')->references('id')->on('maintenances')->onDelete("cascade");
-            $table->timestamps();
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
         });
     }
 

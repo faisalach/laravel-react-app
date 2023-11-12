@@ -27,11 +27,6 @@ class DatabaseSeeder extends Seeder
             'number_plate' => "B 4327 SCH",
         ]);
 
-        $odometer    = \App\Models\Odometer_logs::create([
-            'vehicle_id' => $vehicle->id,
-            'odometer' => "44000"
-        ]);
-
         
     }
 }

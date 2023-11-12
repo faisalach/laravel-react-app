@@ -15,9 +15,10 @@ return new class extends Migration
             $table->increments("id");
             $table->integer("vehicle_id")->unsigned();
             $table->integer("odometer");
-            $table->timestamp("maintenance_date");
+            $table->timestamp("maintenance_date")->useCurrent();
             $table->foreign('vehicle_id')->references('id')->on('vehicles')->onDelete("cascade");
-            $table->timestamps();
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
         });
     }
 

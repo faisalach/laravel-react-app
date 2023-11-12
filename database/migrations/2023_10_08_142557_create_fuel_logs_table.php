@@ -19,10 +19,11 @@ return new class extends Migration
             $table->integer("total_price");
             $table->float("number_of_liter");
             $table->integer("odometer");
-            $table->timestamp("filling_date");
+            $table->timestamp("filling_date")->useCurrent();
             
             $table->foreign('vehicle_id')->references('id')->on('vehicles')->onDelete("cascade");
-            $table->timestamps();
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
         });
     }
 

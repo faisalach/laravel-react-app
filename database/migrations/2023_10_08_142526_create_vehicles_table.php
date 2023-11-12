@@ -18,7 +18,8 @@ return new class extends Migration
             $table->string("vehicle_model",100);
             $table->string("number_plate",100);
             $table->foreign('user_id')->references('id')->on('users')->onDelete("cascade");
-            $table->timestamps();
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
         });
     }
 
