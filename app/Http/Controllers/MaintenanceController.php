@@ -32,6 +32,7 @@ class MaintenanceController extends Controller
 		if(!empty($where)){
 			$data->where($where);
 		}
+		$data->orderBy("maintenance_date","DESC");
 
 		$result 	= $data->get();
 
@@ -96,6 +97,22 @@ class MaintenanceController extends Controller
 
 	}
 
+	public function get_by_id(Request $request,$maintenance_id){
+		$data   = Maintenances::where('id',$maintenance_id)->with(["detail_maintenance"])->first();
+		$user   = Auth::user();
+		
+		if (empty($data)){
+			return $data;
+		}
+		
+		$vehicle 	= Vehicles::find($data->vehicle_id);
+		if($vehicle->user_id != $user->id){
+			return null;
+		}
+
+		return $data;
+	}
+
 	public function insert(Request $request,$vehicle_id){
 		$data   = new Maintenances();
 		$user   = Auth::user();
@@ -110,6 +127,8 @@ class MaintenanceController extends Controller
 		$request->validate([
 			'odometer'  => 'required|numeric',
 			'maintenance_date' => 'required',
+			'detail_maintenance' => 'required',
+			'detail_maintenance.*' => 'required',
 			'detail_maintenance.*.title' => 'required',
 			'detail_maintenance.*.price' => 'required',
 		]);
@@ -125,8 +144,12 @@ class MaintenanceController extends Controller
 				$detail_data->maintenance_id        = $data->id;
 				$detail_data->title					= $row["title"];
 				$detail_data->price					= $row["price"];
-				$detail_data->reminder_on_kilometer	= !empty($row["reminder_on_kilometer"]) ? $row["reminder_on_kilometer"] : "";
-				$detail_data->reminder_on_date		= !empty($row["reminder_on_date"]) ? $row["reminder_on_date"] : "";
+				if(!empty($row["reminder_on_kilometer"])){
+					$detail_data->reminder_on_kilometer = $row["reminder_on_kilometer"];
+				}
+				if(!empty($row["reminder_on_date"])){
+					$detail_data->reminder_on_date 		= $row["reminder_on_date"];
+				}
 				$detail_data->save();
 			}
 			
@@ -167,30 +190,47 @@ class MaintenanceController extends Controller
 		$request->validate([
 			'odometer'  => 'required|numeric',
 			'maintenance_date' => 'required',
+			'detail_maintenance' => 'required',
+			'detail_maintenance.*' => 'required',
 			'detail_maintenance.*.title' => 'required',
-			'detail_maintenance.*.name' => 'required',
+			'detail_maintenance.*.price' => 'required',
 		]);
 
 		$data->odometer             = $request->input("odometer");
 		$data->maintenance_date     = $request->input("maintenance_date");
 
 		if($data->save()){
+
+			$input_detail_maintenance 	= $request->input("detail_maintenance");
+			$isUpdateIdDetailMaintenance_arr 	= [];
 			
-			foreach($request->input("detail_maintenance") as $key => $row){
+			foreach($input_detail_maintenance as $row){
 				$id 				= !empty($row["id"]) ? $row["id"] : "";
 
 				$detail_data		= Detail_maintenance::find($id);
-				if(!empty($detail_data)){
+				if(empty($detail_data)){
 					$detail_data	= new Detail_maintenance;
 				}
 
 				$detail_data->maintenance_id        = $data->id;
 				$detail_data->title					= $row["title"];
 				$detail_data->price					= $row["price"];
-				$detail_data->reminder_on_kilometer = !empty($row["reminder_on_kilometer"]) ? $row["reminder_on_kilometer"] : "";
-				$detail_data->reminder_on_date      = !empty($row["reminder_on_date"]) ? $row["reminder_on_date"] : "";
+				if(!empty($row["reminder_on_kilometer"])){
+					$detail_data->reminder_on_kilometer = $row["reminder_on_kilometer"];
+				}
+				if(!empty($row["reminder_on_date"])){
+					$detail_data->reminder_on_date 		= $row["reminder_on_date"];
+				}
+
 				$detail_data->save();
+
+				$isUpdateIdDetailMaintenance_arr[] 	= $detail_data->id;
 			}
+
+			$deleteDetailMaintenance 	= Detail_maintenance::select()
+			->whereNotIn("id",$isUpdateIdDetailMaintenance_arr)
+			->where("maintenance_id",$data->id);
+			$deleteDetailMaintenance->delete();
 			
 			$odometer_logs			= Odometer_logs::where("vehicle_id",$data->vehicle_id)
 			->where("data_from","maintenance")
@@ -203,7 +243,7 @@ class MaintenanceController extends Controller
 			}
 
 			return response([
-				"message" => "Successfuly update data"
+				"message" => "Successfuly update data",
 			]);
 		}else{
 			return response([
@@ -215,7 +255,7 @@ class MaintenanceController extends Controller
 	public function delete(Request $request,$id){
 		$data	= Maintenances::find($id);
 		$user   = Auth::user();
-
+		
 		if(empty($data)){
 			return response([
 				"message" => "Data not Found"
@@ -228,7 +268,7 @@ class MaintenanceController extends Controller
 				"message" => "Data not Found"
 			],422);
 		}
-
+		
 		$old_id					= $data->id;
 		if($data->delete()){
 			
@@ -236,7 +276,9 @@ class MaintenanceController extends Controller
 			->where("data_from","maintenance")
 			->where("data_from_id",$old_id)
 			->first();
-			$odometer_logs->delete();
+			if(!empty($odometer_logs)){
+				$odometer_logs->delete();
+			}
 
 			return response([
 				"message" => "Successfuly delete data"
