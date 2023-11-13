@@ -64,7 +64,7 @@ class MaintenanceController extends Controller
 		->limit(1)
 		->first();
 		
-		$detail_maintenance		= Detail_maintenance::select("detail_maintenance.*");
+		$detail_maintenance		= Detail_maintenance::select("detail_maintenances.*");
 		$detail_maintenance->join("maintenances","maintenance_id","=","maintenances.id");
 		$detail_maintenance->where("vehicle_id",$vehicle_id);
 		$detail_maintenance->where(function($query){
