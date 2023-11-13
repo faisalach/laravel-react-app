@@ -43,4 +43,5 @@ Route::middleware('auth:sanctum')->group(function() {
 	Route::get("chart/get_data_chart_kilometer",[\App\Http\Controllers\ChartController::class,"get_data_chart_kilometer"]);
 	Route::get("chart/get_data_chart_fuel",[\App\Http\Controllers\ChartController::class,"get_data_chart_fuel"]);
 	Route::get("chart/get_data_chart_fc",[\App\Http\Controllers\ChartController::class,"get_data_chart_fc"]);
+	Route::get("chart/get_data_chart_total_prices",[\App\Http\Controllers\ChartController::class,"get_data_chart_total_prices"]);
 });

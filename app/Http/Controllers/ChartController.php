@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Detail_maintenance;
 use App\Models\Fuel_logs;
 use App\Models\Maintenances;
 use App\Models\Odometer_logs;
@@ -67,7 +68,7 @@ class ChartController extends Controller
 				->where("vehicle_id",$vehicle->id)
 				->first();
 
-				$fuel_arr[] 	= !empty($data_fuel->total_liter) ? $data_fuel->total_liter : 0;
+				$fuel_arr[] 	= !empty($data_fuel->total_liter) ? round($data_fuel->total_liter,2) : 0;
 			}
 
 
@@ -99,7 +100,7 @@ class ChartController extends Controller
 
 			for($i = 0; $i < count($kilometer_arr);$i++){
 				if(!empty($fuel_arr[$i])){
-					$fc_arr[] 	= $kilometer_arr[$i] / $fuel_arr[$i];
+					$fc_arr[] 	= round($kilometer_arr[$i] / $fuel_arr[$i],2);
 				}else{
 					$fc_arr[] 	= 0;
 				}
@@ -116,6 +117,53 @@ class ChartController extends Controller
 			"month"     => array_values($month_arr),
 			"data"      => $data
 		]);
+	}
+
+	public function get_data_chart_total_prices(){
+		$range_month	= 6;
+		$month_arr		= $this->get_range_month($range_month);
+
+
+		$data 			= [];
+		$vehicles 		= Vehicles::all();
+		foreach($vehicles as $vehicle){
+			$prices_arr 	= [];
+			foreach($month_arr as $key 	=> $month_name){
+				$split 	= explode("-",$key);
+				$year 	= $split[0];
+				$month 	= $split[1];
+
+				$maintenance 	= Detail_maintenance::select(DB::raw("SUM(price) as total_price"))
+				->join("maintenances","maintenances.id","=","detail_maintenance.maintenance_id")
+				->where(DB::raw("YEAR(maintenance_date)"),$year)
+				->where(DB::raw("MONTH(maintenance_date)"),$month)
+				->where("vehicle_id",$vehicle->id)
+				->first();
+
+				$total_maintenance 	= !empty($maintenance->total_price) ? round($maintenance->total_price,2) : 0;
+
+				$fuel 	= Fuel_logs::select(DB::raw("SUM(total_price) as total_price"))
+				->where(DB::raw("YEAR(filling_date)"),$year)
+				->where(DB::raw("MONTH(filling_date)"),$month)
+				->where("vehicle_id",$vehicle->id)
+				->first();
+
+				$total_fuel 	= !empty($fuel->total_price) ? round($fuel->total_price,2) : 0;
+
+				$prices_arr[] 	= $total_maintenance + $total_fuel;
+			}
+
+
+			$data[] 	= [
+				"name" 	=> $vehicle->vehicle_brand . " " .$vehicle->vehicle_model,
+				"data" 	=> $prices_arr,
+			];
+		}
+		
+		return [
+			"month"     => array_values($month_arr),
+			"data"      => $data
+		];
 	}
 
 	public function get_range_month($range_month){
