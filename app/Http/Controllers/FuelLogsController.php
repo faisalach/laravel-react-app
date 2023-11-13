@@ -33,6 +33,7 @@ class FuelLogsController extends Controller
 
 		foreach($result as $row){
 			$before_fuel_logs	= Fuel_logs::where("filling_date","<",$row->filling_date)
+			->where("vehicle_id",$vehicle_id)
 			->orderBy("filling_date","DESC")
 			->limit(1)
 			->first();
