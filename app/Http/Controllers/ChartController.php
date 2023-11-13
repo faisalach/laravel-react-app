@@ -4,10 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Detail_maintenance;
 use App\Models\Fuel_logs;
-use App\Models\Maintenances;
 use App\Models\Odometer_logs;
 use App\Models\Vehicles;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ChartController extends Controller
@@ -15,7 +13,6 @@ class ChartController extends Controller
 	public function get_data_chart_kilometer(){
 		$range_month	= 6;
 		$month_arr		= $this->get_range_month($range_month);
-
 
 		$data 			= [];
 		$vehicles 		= Vehicles::all();
@@ -27,8 +24,8 @@ class ChartController extends Controller
 				$month 	= $split[1];
 
 				$data_odometers 	= Odometer_logs::select(DB::raw("(MAX(odometer)-MIN(odometer)) as odometer"))
-				->where(DB::raw("YEAR(created_at)"),$year)
-				->where(DB::raw("MONTH(created_at)"),$month)
+				->where(DB::raw("YEAR(record_at)"),$year)
+				->where(DB::raw("MONTH(record_at)"),$month)
 				->where("vehicle_id",$vehicle->id)
 				->first();
 
@@ -134,7 +131,7 @@ class ChartController extends Controller
 				$month 	= $split[1];
 
 				$maintenance 	= Detail_maintenance::select(DB::raw("SUM(price) as total_price"))
-				->join("maintenances","maintenances.id","=","detail_maintenance.maintenance_id")
+				->join("maintenances","maintenances.id","=","detail_maintenances.maintenance_id")
 				->where(DB::raw("YEAR(maintenance_date)"),$year)
 				->where(DB::raw("MONTH(maintenance_date)"),$month)
 				->where("vehicle_id",$vehicle->id)

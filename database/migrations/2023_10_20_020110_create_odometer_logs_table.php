@@ -17,6 +17,7 @@ return new class extends Migration
             $table->integer("odometer");
             $table->string("data_from",100)->nullable();
             $table->integer("data_from_id")->nullable();
+            $table->timestamp("record_at")->useCurrent();
             $table->foreign('vehicle_id')->references('id')->on('vehicles')->onDelete("cascade");
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();

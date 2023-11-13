@@ -17,11 +17,13 @@ class AuthController extends Controller
 	public function register(Request $request) {
 		$request->validate([
 			'username' => 'required|unique:users,username',
+			'email' 	=> 'required|unique:users,email',
 			'password' => 'required|min:8',
 		]);
 
 		$user    = User::create([
 			"username"  => $request->input("username"),
+			"email"  	=> $request->input("email"),
 			"password"  => Hash::make($request->input("password")),
 		]);
 
@@ -66,11 +68,14 @@ class AuthController extends Controller
 		
 		$username   = $request->input("username");
 		$password   = $request->input("password");
-		$auth       = Auth::attempt(['username' => $username, 'password' => $password]);        
+		$auth       = Auth::attempt(['username' => $username, 'password' => $password]);
 		if(!$auth){
-			return response([
-				"message" => "Incorrect username and password"
-			],Response::HTTP_UNAUTHORIZED);
+			$auth       = Auth::attempt(['email' => $username, 'password' => $password]);
+			if(!$auth){
+				return response([
+					"message" => "Incorrect username and password"
+				],Response::HTTP_UNAUTHORIZED);
+			}
 		}
 
 		$user   = Auth::user();

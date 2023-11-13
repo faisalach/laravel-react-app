@@ -156,6 +156,7 @@ class MaintenanceController extends Controller
 			$odometer_logs                  = new Odometer_logs;
 			$odometer_logs->vehicle_id      = $data->vehicle_id;
 			$odometer_logs->odometer        = $data->odometer;
+			$odometer_logs->record_at  		= $data->maintenance_date;
 			$odometer_logs->data_from	    = "maintenance";
 			$odometer_logs->data_from_id	= $data->id;
 			$odometer_logs->save();
@@ -238,6 +239,7 @@ class MaintenanceController extends Controller
 			->first();
 			
 			if(!empty($odometer_logs)){
+				$odometer_logs->record_at  	= $data->maintenance_date;
 				$odometer_logs->odometer    = $data->odometer;
 				$odometer_logs->save();
 			}

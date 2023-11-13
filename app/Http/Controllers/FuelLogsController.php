@@ -79,6 +79,7 @@ class FuelLogsController extends Controller
 			$odometer_logs					= new Odometer_logs;
 			$odometer_logs->vehicle_id		= $vehicle_id;
 			$odometer_logs->odometer		= $data->odometer;
+			$odometer_logs->record_at  		= $data->filling_date;
 			$odometer_logs->data_from		= "fuel";
 			$odometer_logs->data_from_id	= $data->id;
 			$odometer_logs->save();
@@ -133,6 +134,7 @@ class FuelLogsController extends Controller
 			->first();
 			
 			if(!empty($odometer_logs)){
+				$odometer_logs->record_at  	= $data->filling_date;
 				$odometer_logs->odometer    = $data->odometer;
 				$odometer_logs->save();
 			}

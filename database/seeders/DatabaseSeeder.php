@@ -16,11 +16,12 @@ class DatabaseSeeder extends Seeder
         // \App\Models\User::factory(10)->create();
 
         $user   = \App\Models\User::create([
-            'username' => 'fortest',
-            'password' => Hash::make("fortest123"),
+            'username'  => 'fortest',
+            'email'     => 'fortest@gmail.com',
+            'password'  => Hash::make("fortest123"),
         ]);
 
-        $vehicle    = \App\Models\Vehicles::create([
+        $vehicle1    = \App\Models\Vehicles::create([
             'user_id' => $user->id,
             'vehicle_brand' => "Honda",
             'vehicle_model' => "Vario 150",
