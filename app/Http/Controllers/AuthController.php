@@ -53,7 +53,8 @@ class AuthController extends Controller
 	
 			return response([
 				"message" => "Successfuly register",
-				"user"  => $user
+				"user"  => $user,
+				"token" 	=> $token
 			])->withCookie($cookie);
 
 		}else{
