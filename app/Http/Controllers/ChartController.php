@@ -15,7 +15,8 @@ class ChartController extends Controller
 		$month_arr		= $this->get_range_month($range_month);
 
 		$data 			= [];
-		$vehicles 		= Vehicles::all();
+		$user 			= Auth::user();
+		$vehicles 		= Vehicles::where("user_id",$user->id)->get();
 		foreach($vehicles as $vehicle){
 			$kilometers_arr 	= [];
 			foreach($month_arr as $key 	=> $month_name){
@@ -51,7 +52,8 @@ class ChartController extends Controller
 
 
 		$data 			= [];
-		$vehicles 		= Vehicles::all();
+		$user 			= Auth::user();
+		$vehicles 		= Vehicles::where("user_id",$user->id)->get();
 		foreach($vehicles as $vehicle){
 			$fuel_arr 	= [];
 			foreach($month_arr as $key 	=> $month_name){
@@ -122,7 +124,8 @@ class ChartController extends Controller
 
 
 		$data 			= [];
-		$vehicles 		= Vehicles::all();
+		$user 			= Auth::user();
+		$vehicles 		= Vehicles::where("user_id",$user->id)->get();
 		foreach($vehicles as $vehicle){
 			$prices_arr 	= [];
 			foreach($month_arr as $key 	=> $month_name){
