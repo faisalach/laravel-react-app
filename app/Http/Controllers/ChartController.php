@@ -7,6 +7,7 @@ use App\Models\Fuel_logs;
 use App\Models\Odometer_logs;
 use App\Models\Vehicles;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class ChartController extends Controller
 {
